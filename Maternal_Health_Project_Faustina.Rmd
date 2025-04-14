@@ -1,0 +1,112 @@
+
+---
+title: "NRSG 741 Final Project - Milestone 2"
+author: "Faustina Afriyie"
+date: "2024-03-31"
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(janitor)
+```
+
+# Project Information
+
+**GitHub Repository:** [NRSG 741 Project Repo](https://github.com/users/FAfriyie-hue/projects/2)  
+**Data Source:** Chayan, Ankur Ray (2024), Mendeley Data, V1, doi: 10.17632/8k9pvpmykk.1
+
+# Introduction
+
+Maternal health disparities are persistent challenges across the globe. This project uses a dataset published by Chayan and Ankur Ray (2024), which includes a wide range of information about pregnant individuals—from basic demographics to key medical indicators. The dataset also classifies each pregnancy as either high-risk or not, based on clinical indicators like blood pressure, anemia, and fetal health. Additionally, the dataset contains variables related to socioeconomic status and prenatal care access. This analysis aims to explore these maternal health indicators and uncover demographic and clinical factors that influence maternal outcomes.
+
+# Data Loading
+
+```{r load-data}
+df <- read_excel("/Users/awulogejesseduncanmacclaud/Downloads/Book2\ 2.xlsx", sheet = "Sheet1")
+head(df)
+```
+
+# Data Cleaning Step-by-Step
+
+```{r clean-data-stepwise}
+# 1. Set column names from the first row and remove the first row
+colnames(df) <- df[1, ]
+df <- df[-1, ]
+
+# 2. Clean column names
+df <- janitor::clean_names(df)
+
+# 3. Basic renaming for clarity
+names(df)[names(df) == "blood_pressure"] <- "blood_pressure_1"
+names(df)[names(df) == "blood_pressure_2"] <- "blood_pressure_2"
+
+# 4. Convert weight to numeric (remove 'kg')
+df$weight_kg <- as.numeric(str_remove(df$weight, " kg"))
+
+# 5. Convert height to numeric inches (remove \'\')
+df$height_in <- as.numeric(str_remove(df$height, "''"))
+
+# 6. Extract gestational age (numeric weeks)
+df$gestational_weeks <- as.numeric(str_extract(df$gestational_age, "\\d+"))
+
+# 7. Extract systolic and diastolic BP from blood_pressure_1
+df$systolic_bp <- as.numeric(str_extract(df$blood_pressure_1, "^\\d+"))
+df$diastolic_bp <- as.numeric(str_extract(df$blood_pressure_1, "(?<=/)\\d+"))
+
+# Check cleaned data
+head(df %>% select(age, weight_kg, height_in, gestational_weeks, systolic_bp, diastolic_bp))
+```
+
+# Exploratory Data Analysis
+
+```{r eda}
+ggplot(df, aes(x = as.numeric(age))) +
+  geom_histogram(binwidth = 2, fill = "steelblue", color = "white") +
+  labs(title = "Age Distribution", x = "Age (years)", y = "Count")
+
+ggplot(df, aes(x = gravida)) +
+  geom_bar(fill = "purple") +
+  labs(title = "Gravida Counts", x = "Gravida", y = "Count")
+
+ggplot(df, aes(x = fetal_position)) +
+  geom_bar(fill = "darkgreen") +
+  labs(title = "Fetal Position Distribution")
+```
+
+# Planned Analysis
+
+plan to conduct the following:
+
+- **Logistic regression**: Predicting high-risk pregnancy status using demographics and clinical indicators.
+- **Linear regression**: Exploring predictors of fetal heartbeat.
+- **Cluster analysis**: Identifying patterns in maternal profiles.
+- **Machine learning**: Classification models to predict maternal health risks (if feasible).
+
+# Workflow Summary
+
+- Data sourced from Mendeley Data (Chayan & Ankur Ray, 2024)
+- Loaded and cleaned using a step-by-step pipeline
+- Derived new variables (e.g., weight in kg, gestational weeks, systolic/diastolic BP)
+- Performed preliminary visualization
+
+# Deviations from Plan
+
+The original plan referenced data from Project Nell. However, the final dataset comes from the 2024 Mendeley dataset by Chayan and Ankur Ray, which was more comprehensive and publicly accessible.
+
+# Ancillary Questions
+
+- Does systolic blood pressure or gravidity predict high-risk pregnancy?
+- Are there patterns in fetal heartbeat related to prenatal care indicators?
+
+# Next Steps
+
+- Finalize data cleaning and imputation
+- Run regression and classification models
+- Prepare final manuscript and presentation visuals
+
